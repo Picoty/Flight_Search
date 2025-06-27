@@ -1,0 +1,2407 @@
+\n\n\nsrc/App.css
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom styles */
+.App {
+  text-align: left;
+}
+
+/* Hide scrollbar for webkit browsers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom animation for suggestions dropdown */
+.suggestions-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.suggestions-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.suggestions-exit {
+  opacity: 1;
+}
+
+.suggestions-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+/* Smooth focus transitions */
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  transition: border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+
+/* Custom gradient backgrounds */
+.hero-gradient {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #111827 100%);
+}
+
+/* Map container styling */
+.map-container {
+  background: radial-gradient(circle at center, #1e3a8a 0%, #1e40af 50%, #1e293b 100%);
+}
+
+/* Destination card hover effects */
+.destination-card-hover {
+  transition: all 0.3s ease;
+}
+
+.destination-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Calendar styling overrides */
+.calendar-day-good {
+  background-color: #dcfce7;
+  border-color: #22c55e;
+  color: #15803d;
+}
+
+.calendar-day-expensive {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom button styles */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border: none;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Form input enhancements */
+.form-input {
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .hero-title {
+    font-size: 3rem;
+  }
+  
+  .search-form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .destination-grid {
+    grid-template-columns: 1fr;
+  }
+}\n\n\nsrc/App.test.tsx
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+test('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});
+\n\n\nsrc/App.tsx
+import React from 'react';
+import Layout from './components/Layout';
+import Landing from './pages/Landing';
+import './App.css';
+
+function App() {
+  return (
+    <div className="App">
+      <Layout>
+        <Landing />
+      </Layout>
+    </div>
+  );
+}
+
+export default App;\n\n\nsrc/components/ApiTest.tsx
+import React, { useState } from 'react';
+import { Button } from './ui/button';
+import skyScrapperAPI from '../services/skyScrapperApi';
+
+const ApiTest: React.FC = () => {
+  const [testResult, setTestResult] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const testAirportSearch = async () => {
+    setIsLoading(true);
+    setTestResult('Testing API connection...');
+    
+    try {
+      const response = await skyScrapperAPI.searchAirport('London');
+      setTestResult(`✅ API Working! Found ${response.data.length} airports for London`);
+      console.log('API Response:', response);
+    } catch (error: any) {
+      setTestResult(`❌ API Error: ${error.message}`);
+      console.error('API Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const testNearbyAirports = async () => {
+    setIsLoading(true);
+    setTestResult('Testing nearby airports...');
+    
+    try {
+      // Nairobi coordinates
+      const response = await skyScrapperAPI.getNearByAirports('-1.2921', '36.8219');
+      setTestResult(`✅ Nearby airports found! Current airport: ${response.data.current?.presentation?.title || 'N/A'}`);
+      console.log('Nearby airports:', response);
+    } catch (error: any) {
+      setTestResult(`❌ Error: ${error.message}`);
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-gray-700 p-6 rounded-lg margin-4">
+      <h3 className="text-white text-lg font-medium mb-4">API Test Panel</h3>
+      
+      <div className="space-y-4">
+        <div className="flex space-x-4">
+          <Button 
+            onClick={testAirportSearch}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Test Airport Search
+          </Button>
+          
+          <Button 
+            onClick={testNearbyAirports}
+            disabled={isLoading}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            Test Nearby Airports
+          </Button>
+        </div>
+        
+        {testResult && (
+          <div className="p-4 bg-gray-800 rounded text-white text-sm">
+            {testResult}
+          </div>
+        )}
+        
+        <div className="text-gray-400 text-xs">
+          Check browser console (F12) for detailed API responses
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ApiTest;\n\n\nsrc/components/DestinationCard.tsx
+import React from 'react';
+import { Card, CardContent } from './ui/card';
+
+interface Destination {
+  name: string;
+  price: string;
+  dateRange: string;
+  duration: string;
+  stops: string;
+  image: string;
+}
+
+interface DestinationCardProps {
+  destination: Destination;
+  onClick: () => void;
+}
+
+const DestinationCard: React.FC<DestinationCardProps> = ({ destination, onClick }) => {
+  return (
+    <Card 
+      className="cursor-pointer hover:shadow-lg transition-shadow duration-200 overflow-hidden"
+      onClick={onClick}
+    >
+      {/* Destination Image */}
+      <div className="relative h-48 bg-gray-200 overflow-hidden">
+        <img
+          src={destination.image}
+          alt={destination.name}
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            // Fallback to a colored placeholder if image fails to load
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+            const parent = target.parentElement;
+            if (parent) {
+              parent.className += ' bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center';
+              parent.innerHTML = `<span class="text-white text-lg font-medium">${destination.name}</span>`;
+            }
+          }}
+        />
+      </div>
+
+      <CardContent className="p-4">
+        {/* Destination Name and Price */}
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-medium text-gray-900">{destination.name}</h3>
+          <span className="text-lg font-semibold text-gray-900">{destination.price}</span>
+        </div>
+
+        {/* Date Range */}
+        <p className="text-sm text-gray-600 mb-1">{destination.dateRange}</p>
+
+        {/* Flight Details */}
+        <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <span>{destination.stops}</span>
+          <span>•</span>
+          <span>{destination.duration}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default DestinationCard;\n\n\nsrc/components/ExploreMap.tsx
+import React, { useState } from 'react';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
+import DestinationCard from './DestinationCard';
+
+interface Destination {
+  name: string;
+  price: string;
+  dateRange: string;
+  duration: string;
+  stops: string;
+  image: string;
+}
+
+const ExploreMap: React.FC = () => {
+  const [selectedTab, setSelectedTab] = useState('Nairobi');
+  
+  // Sample destination data - in real app, this would come from API
+  const destinations: Destination[] = [
+    {
+      name: 'Cape Town',
+      price: 'KES 92,070',
+      dateRange: 'Jul 10 – Jul 17',
+      duration: '10 hr 15 min',
+      stops: '1 stop',
+      image: '/images/cape-town.jpg'
+    },
+    {
+      name: 'New York',
+      price: 'KES 123,473',
+      dateRange: 'Sep 12 – Sep 21',
+      duration: '19 hr 30 min',
+      stops: '1 stop',
+      image: '/images/new-york.jpg'
+    },
+    {
+      name: 'London',
+      price: 'KES 95,923',
+      dateRange: 'Oct 9 – Oct 15',
+      duration: '13 hr 30 min',
+      stops: '2 stops',
+      image: '/images/london.jpg'
+    },
+    {
+      name: 'Singapore',
+      price: 'KES 110,000',
+      dateRange: 'Jul 7 – Jul 13',
+      duration: '15 hr 45 min',
+      stops: '1 stop',
+      image: '/images/singapore.jpg'
+    }
+  ];
+
+  const tabs = ['Nairobi', 'Nanyuki', 'Kecorok'];
+
+  return (
+    <div className="w-full">
+      {/* Location Tabs */}
+      <div className="flex space-x-4 mb-6">
+        {tabs.map((tab) => (
+          <Button
+            key={tab}
+            variant={selectedTab === tab ? "default" : "ghost"}
+            onClick={() => setSelectedTab(tab)}
+            className={selectedTab === tab ? "bg-blue-600 text-white" : "text-gray-600"}
+          >
+            {tab}
+          </Button>
+        ))}
+      </div>
+
+      {/* Map Container */}
+      <div className="relative bg-gray-800 rounded-lg overflow-hidden mb-8" style={{ height: '400px' }}>
+        {/* World Map Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/world-map.jpg"
+            alt="World Map"
+            className="w-full h-full object-cover opacity-70"
+          />
+          {/* Optional: Add destination markers on top of image */}
+          <div className="absolute inset-0">
+            {/* Nairobi marker */}
+            <div className="absolute" style={{ top: '60%', left: '52%' }}>
+              <div className="w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+            </div>
+            {/* London marker */}
+            <div className="absolute" style={{ top: '35%', left: '48%' }}>
+              <div className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>
+            </div>
+            {/* New York marker */}
+            <div className="absolute" style={{ top: '40%', left: '25%' }}>
+              <div className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>
+            </div>
+            {/* Tokyo marker */}
+            <div className="absolute" style={{ top: '45%', left: '85%' }}>
+              <div className="w-3 h-3 bg-blue-500 rounded-full border-2 border-white"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Explore Destinations Button */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+          <Button variant="outline" className="bg-white/90 hover:bg-white text-gray-800">
+            Explore destinations
+          </Button>
+        </div>
+      </div>
+
+      {/* Destination Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {destinations.map((destination, index) => (
+          <DestinationCard
+            key={index}
+            destination={destination}
+            onClick={() => console.log(`Selected ${destination.name}`)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default ExploreMap;\n\n\nsrc/components/FlightSearchForm.tsx
+import React, { useState, useEffect } from 'react';
+import { Calendar, Search, MapPin } from 'lucide-react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card } from './ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar as CalendarComponent } from './ui/calendar';
+import { format } from 'date-fns';
+import { SearchFormData, Airport } from '../types';
+import { TRIP_TYPES, CABIN_CLASSES } from '../utils/constants';
+import skyScrapperAPI from '../services/skyScrapperApi';
+
+const FlightSearchForm: React.FC = () => {
+  const [formData, setFormData] = useState<SearchFormData>({
+    origin: null,
+    destination: null,
+    departureDate: null,
+    returnDate: null,
+    tripType: 'round-trip',
+    passengers: {
+      adults: 1,
+      children: 0,
+      infants: 0
+    },
+    cabinClass: 'economy'
+  });
+
+  const [originQuery, setOriginQuery] = useState('Nairobi');
+  const [destinationQuery, setDestinationQuery] = useState('');
+  const [originSuggestions, setOriginSuggestions] = useState<Airport[]>([]);
+  const [destinationSuggestions, setDestinationSuggestions] = useState<Airport[]>([]);
+  const [showOriginSuggestions, setShowOriginSuggestions] = useState(false);
+  const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [departureCalendarOpen, setDepartureCalendarOpen] = useState(false);
+  const [returnCalendarOpen, setReturnCalendarOpen] = useState(false);
+
+  // Default Nairobi airport for easier testing
+  useEffect(() => {
+    if (originQuery === 'Nairobi' && originSuggestions.length > 0 && !formData.origin) {
+      // Auto-select first Nairobi airport
+      const nairobiAirport = originSuggestions.find(airport => 
+        airport.presentation.title.toLowerCase().includes('nairobi')
+      );
+      if (nairobiAirport) {
+        handleOriginSelect(nairobiAirport);
+      }
+    }
+  }, [originSuggestions, originQuery, formData.origin]);
+
+  // Search for airports
+  const searchAirports = async (query: string, type: 'origin' | 'destination') => {
+    if (query.length < 2) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await skyScrapperAPI.searchAirport(query);
+      if (response.status && response.data) {
+        if (type === 'origin') {
+          setOriginSuggestions(response.data);
+          setShowOriginSuggestions(true);
+        } else {
+          setDestinationSuggestions(response.data);
+          setShowDestinationSuggestions(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error searching airports:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (originQuery && originQuery.length >= 2) {
+        searchAirports(originQuery, 'origin');
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [originQuery]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (destinationQuery && destinationQuery.length >= 2) {
+        searchAirports(destinationQuery, 'destination');
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [destinationQuery]);
+
+  const handleOriginSelect = (airport: Airport) => {
+    setFormData(prev => ({ ...prev, origin: airport }));
+    setOriginQuery(airport.presentation.title);
+    setShowOriginSuggestions(false);
+  };
+
+  const handleDestinationSelect = (airport: Airport) => {
+    setFormData(prev => ({ ...prev, destination: airport }));
+    setDestinationQuery(airport.presentation.title);
+    setShowDestinationSuggestions(false);
+  };
+
+  const isFormValid = formData.origin && formData.destination && formData.departureDate;
+  const disabledReason = !formData.origin ? 'Select origin' : 
+                        !formData.destination ? 'Select destination' : 
+                        !formData.departureDate ? 'Select departure date' : '';
+
+  const handleSearch = async () => {
+    if (!isFormValid) {
+      alert(`Please complete: ${disabledReason}`);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Safe type checking
+      if (!formData.origin || !formData.destination || !formData.departureDate) {
+        alert('Please complete all required fields');
+        setIsLoading(false);
+        return;
+      }
+      
+      const searchParams = {
+        originSkyId: formData.origin.navigation.relevantFlightParams.skyId,
+        destinationSkyId: formData.destination.navigation.relevantFlightParams.skyId,
+        originEntityId: formData.origin.navigation.relevantFlightParams.entityId,
+        destinationEntityId: formData.destination.navigation.relevantFlightParams.entityId,
+        date: format(formData.departureDate, 'yyyy-MM-dd'),
+        returnDate: formData.returnDate ? format(formData.returnDate, 'yyyy-MM-dd') : undefined,
+        adults: formData.passengers.adults,
+        children: formData.passengers.children,
+        infants: formData.passengers.infants,
+        cabinClass: formData.cabinClass,
+        currency: 'KES'
+      };
+
+      console.log('Searching flights with params:', searchParams);
+      const response = await skyScrapperAPI.searchFlights(searchParams);
+      console.log('Flight search results:', response);
+      
+      if (response.status && response.data) {
+        alert(`Found ${response.data.itineraries?.length || 0} flights!`);
+        // TODO: Navigate to results page or show results
+      } else {
+        alert('No flights found. Please try different dates or destinations.');
+      }
+    } catch (error: any) {
+      console.error('Flight search error:', error);
+      alert(`Error searching flights: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="bg-white p-6 rounded-lg shadow-lg max-w-5xl mx-auto">
+      {/* Trip Type and Passenger/Class Selectors */}
+      <div className="flex flex-wrap items-center gap-4 mb-6">
+        {/* Trip Type Dropdown */}
+        <div className="relative">
+          <select
+            value={formData.tripType}
+            onChange={(e) => setFormData(prev => ({ ...prev, tripType: e.target.value as any }))}
+            className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+          >
+            {TRIP_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </select>
+          {/* Custom dropdown arrow */}
+          <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Passengers Dropdown */}
+        <div className="flex items-center space-x-2">
+          <label className="text-sm text-gray-600">Passengers:</label>
+          <select
+            value={`${formData.passengers.adults}-${formData.passengers.children}-${formData.passengers.infants}`}
+            onChange={(e) => {
+              const [adults, children, infants] = e.target.value.split('-').map(Number);
+              setFormData(prev => ({
+                ...prev,
+                passengers: { adults, children, infants }
+              }));
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="1-0-0">1 Adult</option>
+            <option value="2-0-0">2 Adults</option>
+            <option value="3-0-0">3 Adults</option>
+            <option value="4-0-0">4 Adults</option>
+            <option value="1-1-0">1 Adult, 1 Child</option>
+            <option value="2-1-0">2 Adults, 1 Child</option>
+            <option value="2-2-0">2 Adults, 2 Children</option>
+            <option value="1-0-1">1 Adult, 1 Infant</option>
+            <option value="2-0-1">2 Adults, 1 Infant</option>
+            <option value="2-1-1">2 Adults, 1 Child, 1 Infant</option>
+          </select>
+        </div>
+
+        {/* Cabin Class Dropdown */}
+        <div className="flex items-center space-x-2">
+          <label className="text-sm text-gray-600">Class:</label>
+          <select
+            value={formData.cabinClass}
+            onChange={(e) => setFormData(prev => ({ ...prev, cabinClass: e.target.value as any }))}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            {CABIN_CLASSES.map((cabin) => (
+              <option key={cabin.value} value={cabin.value}>
+                {cabin.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Main Search Form */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Origin */}
+        <div className="relative">
+          <div className="relative">
+            <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="From (e.g., Nairobi)"
+              value={originQuery}
+              onChange={(e) => setOriginQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          {showOriginSuggestions && originSuggestions.length > 0 && (
+            <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
+              {originSuggestions.map((airport, index) => (
+                <div
+                  key={index}
+                  className="p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  onClick={() => handleOriginSelect(airport)}
+                >
+                  <div className="font-medium">{airport.presentation.title}</div>
+                  <div className="text-sm text-gray-500">{airport.presentation.subtitle}</div>
+                </div>
+              ))}
+            </Card>
+          )}
+          {formData.origin && (
+            <div className="text-xs text-green-600 mt-1">
+              ✅ Selected: {formData.origin.presentation.title}
+            </div>
+          )}
+        </div>
+
+        {/* Destination */}
+        <div className="relative">
+          <div className="relative">
+            <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="To (e.g., London)"
+              value={destinationQuery}
+              onChange={(e) => setDestinationQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          {showDestinationSuggestions && destinationSuggestions.length > 0 && (
+            <Card className="absolute z-10 w-full mt-1 max-h-60 overflow-y-auto">
+              {destinationSuggestions.map((airport, index) => (
+                <div
+                  key={index}
+                  className="p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                  onClick={() => handleDestinationSelect(airport)}
+                >
+                  <div className="font-medium">{airport.presentation.title}</div>
+                  <div className="text-sm text-gray-500">{airport.presentation.subtitle}</div>
+                </div>
+              ))}
+            </Card>
+          )}
+          {formData.destination && (
+            <div className="text-xs text-green-600 mt-1">
+              ✅ Selected: {formData.destination.presentation.title}
+            </div>
+          )}
+        </div>
+
+        {/* Departure Date */}
+        <Popover open={departureCalendarOpen} onOpenChange={setDepartureCalendarOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="w-full justify-start text-left font-normal">
+              <Calendar className="mr-2 h-4 w-4" />
+              {formData.departureDate ? format(formData.departureDate, "MMM dd") : "Departure"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <CalendarComponent
+              mode="single"
+              selected={formData.departureDate || undefined}
+              onSelect={(date) => {
+                setFormData(prev => ({ ...prev, departureDate: date || null }));
+                setDepartureCalendarOpen(false);
+              }}
+              disabled={(date) => date < new Date()}
+            />
+          </PopoverContent>
+        </Popover>
+
+        {/* Return Date */}
+        {formData.tripType === 'round-trip' && (
+          <Popover open={returnCalendarOpen} onOpenChange={setReturnCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-full justify-start text-left font-normal">
+                <Calendar className="mr-2 h-4 w-4" />
+                {formData.returnDate ? format(formData.returnDate, "MMM dd") : "Return"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <CalendarComponent
+                mode="single"
+                selected={formData.returnDate || undefined}
+                onSelect={(date) => {
+                  setFormData(prev => ({ ...prev, returnDate: date || null }));
+                  setReturnCalendarOpen(false);
+                }}
+                disabled={(date) => date < (formData.departureDate || new Date())}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+
+      {/* Search Button */}
+      <div className="mt-6 flex flex-col items-center space-y-4">
+        {/* Main Search Button */}
+        <Button 
+          onClick={handleSearch} 
+          size="lg" 
+          className="px-8 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={!isFormValid || isLoading}
+        >
+          <Search className="mr-2 h-4 w-4" />
+          {isLoading ? 'Searching...' : 'Search flights'}
+        </Button>
+        
+        {/* Force Enable Button (for debugging) */}
+        <Button 
+          onClick={handleSearch} 
+          size="sm" 
+          variant="outline"
+          className="bg-red-100 border-red-300 text-red-700 hover:bg-red-200"
+          disabled={isLoading}
+        >
+          🚨 Force Search (Debug)
+        </Button>
+        
+        {/* Test Button (for debugging) */}
+        <Button 
+          onClick={async () => {
+            setIsLoading(true);
+            try {
+              // Test with hard-coded values
+              const testParams = {
+                originSkyId: 'NBO',
+                destinationSkyId: 'LHR',
+                originEntityId: '95673320', 
+                destinationEntityId: '95565050',
+                date: '2024-07-15',
+                currency: 'KES'
+              };
+              console.log('Testing with params:', testParams);
+              const response = await skyScrapperAPI.searchFlights(testParams);
+              console.log('Test flight search results:', response);
+              alert(`Test search complete! Check console for results.`);
+            } catch (error: any) {
+              console.error('Test search error:', error);
+              alert(`Test search error: ${error.message}`);
+            } finally {
+              setIsLoading(false);
+            }
+          }}
+          size="sm"
+          variant="outline"
+          className="text-xs"
+          disabled={isLoading}
+        >
+          🧪 Test Flight Search (API Test)
+        </Button>
+        
+        {/* Detailed Debug Info */}
+        <div className="bg-gray-100 p-4 rounded text-xs space-y-2 w-full max-w-md">
+          <div className="font-bold">Debug Information:</div>
+          <div>Form Valid: {isFormValid ? '✅ YES' : '❌ NO'}</div>
+          <div>Origin: {formData.origin ? `✅ ${formData.origin.presentation.title}` : '❌ Not selected'}</div>
+          <div>Destination: {formData.destination ? `✅ ${formData.destination.presentation.title}` : '❌ Not selected'}</div>
+          <div>Date: {formData.departureDate ? `✅ ${format(formData.departureDate, 'yyyy-MM-dd')}` : '❌ Not selected'}</div>
+          <div>Loading: {isLoading ? '⏳ YES' : '✅ NO'}</div>
+          <div>Button Disabled: {(!isFormValid || isLoading) ? '🔒 YES' : '🔓 NO'}</div>
+          
+          {!isFormValid && (
+            <div className="text-red-600 font-bold">
+              Missing: {disabledReason}
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+export default FlightSearchForm;\n\n\nsrc/components/Foooter.tsx
+import React, { useState } from 'react';
+import { Globe, MapPin, DollarSign, ChevronDown } from 'lucide-react';
+import { Button } from './ui/button';
+
+const Footer: React.FC = () => {
+  const [isInternationalOpen, setIsInternationalOpen] = useState(false);
+  const [isExploreOpen, setIsExploreOpen] = useState(false);
+
+  return (
+    <footer className="bg-gray-800 border-t border-gray-700">
+      {/* Language, Location, Currency Section */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+          {/* Language */}
+          <Button
+            variant="outline"
+            className="flex items-center space-x-2 bg-transparent border-gray-600 text-blue-400 hover:bg-gray-700 hover:text-blue-300"
+          >
+            <Globe className="w-4 h-4" />
+            <span>Language • English (United States)</span>
+          </Button>
+
+          {/* Location */}
+          <Button
+            variant="outline"
+            className="flex items-center space-x-2 bg-transparent border-gray-600 text-blue-400 hover:bg-gray-700 hover:text-blue-300"
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Location • Kenya</span>
+          </Button>
+
+          {/* Currency */}
+          <Button
+            variant="outline"
+            className="flex items-center space-x-2 bg-transparent border-gray-600 text-blue-400 hover:bg-gray-700 hover:text-blue-300"
+          >
+            <DollarSign className="w-4 h-4" />
+            <span>Currency • KES</span>
+          </Button>
+        </div>
+
+        {/* Current Settings Info */}
+        <div className="text-center text-gray-400 text-sm mb-4">
+          <p>Current language and currency options applied: English (United States) - Kenya - KES</p>
+          <p>
+            Displayed currencies may differ from the currencies used to purchase flights.{' '}
+            <button className="text-blue-400 hover:text-blue-300 underline">
+              Learn more
+            </button>
+          </p>
+        </div>
+
+        {/* Footer Links */}
+        <div className="flex flex-wrap justify-center items-center gap-6 py-4 border-y border-gray-700">
+          <button className="text-blue-400 hover:text-blue-300 text-sm">About</button>
+          <button className="text-blue-400 hover:text-blue-300 text-sm">Privacy</button>
+          <button className="text-blue-400 hover:text-blue-300 text-sm">Terms</button>
+          <button className="text-blue-400 hover:text-blue-300 text-sm">Join user studies</button>
+          <button className="text-blue-400 hover:text-blue-300 text-sm">Feedback</button>
+          <button className="text-blue-400 hover:text-blue-300 text-sm">Help Center</button>
+        </div>
+
+        {/* Expandable Sections */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8">
+          {/* International Sites */}
+          <div>
+            <button
+              onClick={() => setIsInternationalOpen(!isInternationalOpen)}
+              className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-lg font-medium mb-4"
+            >
+              <span>International sites</span>
+              <ChevronDown 
+                className={`w-4 h-4 transition-transform ${isInternationalOpen ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            
+            {isInternationalOpen && (
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <button className="text-gray-400 hover:text-white text-left py-1">Argentina</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Australia</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Belgium</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Brasil</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Canada</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Chile</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Colombia</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Deutschland</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">España</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">France</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">India</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Indonesia</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Italia</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">日本</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">대한민국</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Malaysia</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">México</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Nederland</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Nigeria</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Perú</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Philippines</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Polska</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Portugal</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Singapore</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">South Africa</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Sverige</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Thailand</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Türkiye</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Ukraine</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">United Kingdom</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">United States</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Việt Nam</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">中国</button>
+              </div>
+            )}
+          </div>
+
+          {/* Explore Flights */}
+          <div>
+            <button
+              onClick={() => setIsExploreOpen(!isExploreOpen)}
+              className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-lg font-medium mb-4"
+            >
+              <span>Explore flights</span>
+              <ChevronDown 
+                className={`w-4 h-4 transition-transform ${isExploreOpen ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            
+            {isExploreOpen && (
+              <div className="grid grid-cols-1 gap-2 text-sm">
+                <button className="text-gray-400 hover:text-white text-left py-1">Cheap flights</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flight deals</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to Europe</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to Asia</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to North America</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to Dubai</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to London</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to New York</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to Paris</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Flights to Tokyo</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Last minute flights</button>
+                <button className="text-gray-400 hover:text-white text-left py-1">Weekend getaways</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="text-center text-gray-500 text-sm pt-4 border-t border-gray-700">
+          <p>&copy; {new Date().getFullYear()} FlightSearch. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;\n\n\nsrc/components/Header.tsx
+import React from 'react';
+import { Menu, LayoutGrid, User } from 'lucide-react';
+import { MdFlight } from 'react-icons/md';
+import { Button } from './ui/button';
+
+const Header: React.FC = () => {
+  return (
+    <header className="w-full bg-white border-b border-gray-200">
+      <div className="flex items-center justify-between px-4 py-3">
+        {/* Left side - Google logo and navigation */}
+        <div className="flex items-center space-x-4">
+          <Button variant="ghost" size="sm" className="p-2">
+            <Menu className="w-5 h-5 text-gray-600" />
+          </Button>
+          
+          {/* <div className="flex items-center space-x-2">
+            <MdFlight className="text-blue-600 text-xl" />
+            <span className="text-2xl font-normal text-gray-700">FlightSearch</span>
+          </div> */}
+          
+          <nav className="hidden md:flex items-center space-x-6 ml-8">
+            <Button variant="ghost" className="text-blue-600 hover:text-blue-700 bg-blue-50">
+              Flights
+            </Button>
+            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+              Hotels
+            </Button>
+            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+              Cars
+            </Button>
+            <Button variant="ghost" className="text-gray-600 hover:text-gray-900">
+              Packages
+            </Button>
+          </nav>
+        </div>
+
+        {/* Right side - Settings and profile */}
+        <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="sm" className="p-2">
+            <LayoutGrid className="w-5 h-5 text-gray-600" />
+          </Button>
+          <Button variant="ghost" size="sm" className="p-2 rounded-full">
+            <User className="w-5 h-5 text-gray-600" />
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+export default Header;\n\n\nsrc/components/Layout.tsx
+import React from 'react';
+import Header from './Header';
+import Footer from './Foooter';
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gray-900 flex flex-col">
+      <Header />
+      <main className="flex-1 w-full">
+        {children}
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default Layout;\n\n\nsrc/components/PopularDestinations.tsx
+import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from './ui/button';
+import { POPULAR_DESTINATIONS } from '../utils/constants';
+
+const PopularDestinations: React.FC = () => {
+  const scrollLeft = () => {
+    const container = document.getElementById('destinations-scroll');
+    if (container) {
+      container.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    const container = document.getElementById('destinations-scroll');
+    if (container) {
+      container.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
+  const handleDestinationClick = (destination: string) => {
+    console.log(`Selected destination: ${destination}`);
+    // TODO: Navigate to search results for this destination
+  };
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-normal text-white">
+          Popular destinations from Nairobi
+        </h2>
+        
+        {/* Scroll Controls */}
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={scrollLeft}
+            className="p-2 border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={scrollRight}
+            className="p-2 border-gray-600 bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Destinations Scroll Container */}
+      <div
+        id="destinations-scroll"
+        className="flex space-x-4 overflow-x-auto scrollbar-hide pb-4"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {POPULAR_DESTINATIONS.map((destination, index) => (
+          <div
+            key={index}
+            className="flex-shrink-0 w-48 cursor-pointer group"
+            onClick={() => handleDestinationClick(destination.name)}
+          >
+            {/* Destination Image */}
+            <div className="relative h-32 rounded-lg overflow-hidden mb-2">
+              <img
+                src={destination.image}
+                alt={destination.name}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                onError={(e) => {
+                  // Fallback to a gradient placeholder if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    // Create a gradient based on the destination name
+                    const colors = [
+                      'from-blue-400 to-purple-500',
+                      'from-green-400 to-blue-500',
+                      'from-purple-400 to-pink-500',
+                      'from-yellow-400 to-orange-500',
+                      'from-red-400 to-purple-500',
+                      'from-indigo-400 to-purple-500',
+                      'from-pink-400 to-red-500'
+                    ];
+                    const colorIndex = index % colors.length;
+                    parent.className += ` bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`;
+                    parent.innerHTML = `<span class="text-white text-sm font-medium text-center px-2">${destination.name}</span>`;
+                  }
+                }}
+              />
+              
+              {/* Overlay with destination name */}
+              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-end p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="text-white text-sm font-medium">{destination.name}</span>
+              </div>
+            </div>
+
+            {/* Destination Name and Price */}
+            <div className="text-center">
+              <h3 className="font-medium text-white mb-1">{destination.name}</h3>
+              <p className="text-sm text-gray-300">{destination.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default PopularDestinations;\n\n\nsrc/components/ui/button.tsx
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "../../lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+\n\n\nsrc/components/ui/calendar.tsx
+import * as React from "react"
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from "lucide-react"
+import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
+
+import { cn } from "../../lib/utils"
+import { Button, buttonVariants } from "./button"
+
+function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  captionLayout = "label",
+  buttonVariant = "ghost",
+  formatters,
+  components,
+  ...props
+}: React.ComponentProps<typeof DayPicker> & {
+  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
+}) {
+  const defaultClassNames = getDefaultClassNames()
+
+  return (
+    <DayPicker
+      showOutsideDays={showOutsideDays}
+      className={cn(
+        "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
+        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
+        className
+      )}
+      captionLayout={captionLayout}
+      formatters={{
+        formatMonthDropdown: (date) =>
+          date.toLocaleString("default", { month: "short" }),
+        ...formatters,
+      }}
+      classNames={{
+        root: cn("w-fit", defaultClassNames.root),
+        months: cn(
+          "relative flex flex-col gap-4 md:flex-row",
+          defaultClassNames.months
+        ),
+        month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+        nav: cn(
+          "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
+          defaultClassNames.nav
+        ),
+        button_previous: cn(
+          buttonVariants({ variant: buttonVariant }),
+          "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+          defaultClassNames.button_previous
+        ),
+        button_next: cn(
+          buttonVariants({ variant: buttonVariant }),
+          "h-[--cell-size] w-[--cell-size] select-none p-0 aria-disabled:opacity-50",
+          defaultClassNames.button_next
+        ),
+        month_caption: cn(
+          "flex h-[--cell-size] w-full items-center justify-center px-[--cell-size]",
+          defaultClassNames.month_caption
+        ),
+        dropdowns: cn(
+          "flex h-[--cell-size] w-full items-center justify-center gap-1.5 text-sm font-medium",
+          defaultClassNames.dropdowns
+        ),
+        dropdown_root: cn(
+          "has-focus:border-ring border-input shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] relative rounded-md border",
+          defaultClassNames.dropdown_root
+        ),
+        dropdown: cn("absolute inset-0 opacity-0", defaultClassNames.dropdown),
+        caption_label: cn(
+          "select-none font-medium",
+          captionLayout === "label"
+            ? "text-sm"
+            : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
+          defaultClassNames.caption_label
+        ),
+        table: "w-full border-collapse",
+        weekdays: cn("flex", defaultClassNames.weekdays),
+        weekday: cn(
+          "text-muted-foreground flex-1 select-none rounded-md text-[0.8rem] font-normal",
+          defaultClassNames.weekday
+        ),
+        week: cn("mt-2 flex w-full", defaultClassNames.week),
+        week_number_header: cn(
+          "w-[--cell-size] select-none",
+          defaultClassNames.week_number_header
+        ),
+        week_number: cn(
+          "text-muted-foreground select-none text-[0.8rem]",
+          defaultClassNames.week_number
+        ),
+        day: cn(
+          "group/day relative aspect-square h-full w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+          defaultClassNames.day
+        ),
+        range_start: cn(
+          "bg-accent rounded-l-md",
+          defaultClassNames.range_start
+        ),
+        range_middle: cn("rounded-none", defaultClassNames.range_middle),
+        range_end: cn("bg-accent rounded-r-md", defaultClassNames.range_end),
+        today: cn(
+          "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
+          defaultClassNames.today
+        ),
+        outside: cn(
+          "text-muted-foreground aria-selected:text-muted-foreground",
+          defaultClassNames.outside
+        ),
+        disabled: cn(
+          "text-muted-foreground opacity-50",
+          defaultClassNames.disabled
+        ),
+        hidden: cn("invisible", defaultClassNames.hidden),
+        ...classNames,
+      }}
+      components={{
+        Root: ({ className, rootRef, ...props }) => {
+          return (
+            <div
+              data-slot="calendar"
+              ref={rootRef}
+              className={cn(className)}
+              {...props}
+            />
+          )
+        },
+        Chevron: ({ className, orientation, ...props }) => {
+          if (orientation === "left") {
+            return (
+              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
+            )
+          }
+
+          if (orientation === "right") {
+            return (
+              <ChevronRightIcon
+                className={cn("size-4", className)}
+                {...props}
+              />
+            )
+          }
+
+          return (
+            <ChevronDownIcon className={cn("size-4", className)} {...props} />
+          )
+        },
+        DayButton: CalendarDayButton,
+        WeekNumber: ({ children, ...props }) => {
+          return (
+            <td {...props}>
+              <div className="flex size-[--cell-size] items-center justify-center text-center">
+                {children}
+              </div>
+            </td>
+          )
+        },
+        ...components,
+      }}
+      {...props}
+    />
+  )
+}
+
+function CalendarDayButton({
+  className,
+  day,
+  modifiers,
+  ...props
+}: React.ComponentProps<typeof DayButton>) {
+  const defaultClassNames = getDefaultClassNames()
+
+  const ref = React.useRef<HTMLButtonElement>(null)
+  React.useEffect(() => {
+    if (modifiers.focused) ref.current?.focus()
+  }, [modifiers.focused])
+
+  return (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      data-day={day.date.toLocaleDateString()}
+      data-selected-single={
+        modifiers.selected &&
+        !modifiers.range_start &&
+        !modifiers.range_end &&
+        !modifiers.range_middle
+      }
+      data-range-start={modifiers.range_start}
+      data-range-end={modifiers.range_end}
+      data-range-middle={modifiers.range_middle}
+      className={cn(
+        "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50 flex aspect-square h-auto w-full min-w-[--cell-size] flex-col gap-1 font-normal leading-none data-[range-end=true]:rounded-md data-[range-middle=true]:rounded-none data-[range-start=true]:rounded-md group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px] [&>span]:text-xs [&>span]:opacity-70",
+        defaultClassNames.day,
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Calendar, CalendarDayButton }
+\n\n\nsrc/components/ui/card.tsx
+import * as React from "react"
+
+import { cn } from "../../lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "text-2xl font-semibold leading-none tracking-tight",
+      className
+    )}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+\n\n\nsrc/components/ui/input.tsx
+import * as React from "react"
+
+import { cn } from "../../lib/utils"
+
+const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input }
+\n\n\nsrc/components/ui/popover.tsx
+import * as React from "react"
+import * as PopoverPrimitive from "@radix-ui/react-popover"
+
+import { cn } from "../../lib/utils"
+
+const Popover = PopoverPrimitive.Root
+
+const PopoverTrigger = PopoverPrimitive.Trigger
+
+const PopoverContent = React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+>(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-popover-content-transform-origin]",
+        className
+      )}
+      {...props}
+    />
+  </PopoverPrimitive.Portal>
+))
+PopoverContent.displayName = PopoverPrimitive.Content.displayName
+
+export { Popover, PopoverTrigger, PopoverContent }
+\n\n\nsrc/components/UsefulTools.tsx
+import React from 'react';
+import { Calendar, TrendingUp, Bell, Star, X } from 'lucide-react';
+import { Card, CardContent } from './ui/card';
+
+const UsefulTools: React.FC = () => {
+  // Sample calendar data for visualization
+  const calendarDays = [
+    { day: 1, status: 'normal' },
+    { day: 2, status: 'normal' },
+    { day: 3, status: 'good' },
+    { day: 4, status: 'normal' },
+    { day: 5, status: 'expensive' },
+    { day: 6, status: 'expensive' },
+    { day: 7, status: 'normal' },
+    { day: 8, status: 'normal' },
+    { day: 9, status: 'normal' },
+    { day: 10, status: 'good' },
+    { day: 11, status: 'normal' },
+    { day: 12, status: 'normal' },
+    { day: 13, status: 'normal' },
+    { day: 14, status: 'normal' },
+    { day: 15, status: 'good' },
+    { day: 16, status: 'normal' },
+    { day: 17, status: 'normal' },
+    { day: 18, status: 'normal' },
+    { day: 19, status: 'normal' },
+    { day: 20, status: 'normal' },
+    { day: 21, status: 'normal' },
+    { day: 22, status: 'normal' },
+    { day: 23, status: 'normal' },
+    { day: 24, status: 'normal' },
+    { day: 25, status: 'normal' },
+    { day: 26, status: 'normal' },
+    { day: 27, status: 'normal' },
+    { day: 28, status: 'normal' },
+    { day: 29, status: 'normal' },
+    { day: 30, status: 'normal' },
+  ];
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'good':
+        return <Star className="w-4 h-4 text-green-500 fill-current" />;
+      case 'expensive':
+        return <X className="w-4 h-4 text-red-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'good':
+        return 'bg-green-100 border-green-200';
+      case 'expensive':
+        return 'bg-red-100 border-red-200';
+      default:
+        return 'bg-gray-50 border-gray-200';
+    }
+  };
+
+  return (
+    <div className="w-full">
+      <h2 className="text-2xl font-normal text-white mb-8">
+        Useful tools to help you find the best deals
+      </h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column - Tool Cards */}
+        <div className="space-y-6">
+          {/* Find cheapest days to fly */}
+          <Card className="bg-gray-700 text-white p-6 hover:bg-gray-600 transition-colors cursor-pointer border-gray-600">
+            <CardContent className="p-0">
+              <div className="flex items-start space-x-4">
+                <div className="p-3 bg-blue-600 rounded-lg">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Find the cheapest days to fly</h3>
+                  <p className="text-gray-300 text-sm">
+                    The Date grid and Price graph make it easy to see the best flight deals
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* See the whole picture with price insights */}
+          <Card className="bg-gray-700 text-white p-6 hover:bg-gray-600 transition-colors cursor-pointer border-gray-600">
+            <CardContent className="p-0">
+              <div className="flex items-start space-x-4">
+                <div className="p-3 bg-blue-600 rounded-lg">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">See the whole picture with price insights</h3>
+                  <p className="text-gray-300 text-sm">
+                    Price history and trend data show you when to book to get the best price on your flight
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Track prices for a trip */}
+          <Card className="bg-gray-700 text-white p-6 hover:bg-gray-600 transition-colors cursor-pointer border-gray-600">
+            <CardContent className="p-0">
+              <div className="flex items-start space-x-4">
+                <div className="p-3 bg-blue-600 rounded-lg">
+                  <Bell className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Track prices for a trip</h3>
+                  <p className="text-gray-300 text-sm">
+                    Not ready to book yet? Observe price changes for a route or flight and get 
+                    notified when prices drop.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Calendar Insights */}
+        <div className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium text-white mb-4">
+              Insightful tools help you choose your trip dates
+            </h3>
+            <p className="text-sm text-gray-300 mb-6">
+              If your travel plans are flexible, use the form above to start searching for a specific trip. 
+              Then, play around with the <strong>Date grid</strong> and <strong>Price graph</strong> options 
+              on the Search page to find the cheapest days to get to your destination — and back again for round trips.
+            </p>
+          </div>
+
+          {/* Calendar Visualization */}
+          <Card className="bg-gray-800 p-6 border-gray-600">
+            <CardContent className="p-0">
+              {/* Calendar Header */}
+              <div className="flex items-center justify-between mb-4 text-white">
+                <Calendar className="w-5 h-5" />
+                <div className="flex space-x-4 text-sm">
+                  <span>Month view</span>
+                </div>
+              </div>
+
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {/* Calendar headers */}
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                  <div key={index} className="text-center text-xs text-gray-400 p-2 font-medium">
+                    {day}
+                  </div>
+                ))}
+
+                {/* Calendar days */}
+                {calendarDays.map((dayData, index) => (
+                  <div
+                    key={index}
+                    className={`
+                      relative h-10 border rounded flex items-center justify-center text-sm
+                      ${getStatusColor(dayData.status)}
+                      ${dayData.status === 'normal' ? 'text-gray-600' : 'text-gray-800'}
+                    `}
+                  >
+                    <span className="text-xs">{dayData.day}</span>
+                    {getStatusIcon(dayData.status) && (
+                      <div className="absolute top-0 right-0 transform translate-x-1 -translate-y-1">
+                        {getStatusIcon(dayData.status)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center justify-center space-x-6 mt-4 text-xs text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <Star className="w-3 h-3 text-green-400 fill-current" />
+                  <span>Best prices</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <X className="w-3 h-3 text-red-400" />
+                  <span>Higher prices</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UsefulTools;\n\n\nsrc/index.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar hiding for popular destinations */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}\n\n\nsrc/index.tsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+\n\n\nsrc/lib/utils.ts
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+\n\n\nsrc/logo.svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 595.3"><g fill="#61DAFB"><path d="M666.3 296.5c0-32.5-40.7-63.3-103.1-82.4 14.4-63.6 8-114.2-20.2-130.4-6.5-3.8-14.1-5.6-22.4-5.6v22.3c4.6 0 8.3.9 11.4 2.6 13.6 7.8 19.5 37.5 14.9 75.7-1.1 9.4-2.9 19.3-5.1 29.4-19.6-4.8-41-8.5-63.5-10.9-13.5-18.5-27.5-35.3-41.6-50 32.6-30.3 63.2-46.9 84-46.9V78c-27.5 0-63.5 19.6-99.9 53.6-36.4-33.8-72.4-53.2-99.9-53.2v22.3c20.7 0 51.4 16.5 84 46.6-14 14.7-28 31.4-41.3 49.9-22.6 2.4-44 6.1-63.6 11-2.3-10-4-19.7-5.2-29-4.7-38.2 1.1-67.9 14.6-75.8 3-1.8 6.9-2.6 11.5-2.6V78.5c-8.4 0-16 1.8-22.6 5.6-28.1 16.2-34.4 66.7-19.9 130.1-62.2 19.2-102.7 49.9-102.7 82.3 0 32.5 40.7 63.3 103.1 82.4-14.4 63.6-8 114.2 20.2 130.4 6.5 3.8 14.1 5.6 22.5 5.6 27.5 0 63.5-19.6 99.9-53.6 36.4 33.8 72.4 53.2 99.9 53.2 8.4 0 16-1.8 22.6-5.6 28.1-16.2 34.4-66.7 19.9-130.1 62-19.1 102.5-49.9 102.5-82.3zm-130.2-66.7c-3.7 12.9-8.3 26.2-13.5 39.5-4.1-8-8.4-16-13.1-24-4.6-8-9.5-15.8-14.4-23.4 14.2 2.1 27.9 4.7 41 7.9zm-45.8 106.5c-7.8 13.5-15.8 26.3-24.1 38.2-14.9 1.3-30 2-45.2 2-15.1 0-30.2-.7-45-1.9-8.3-11.9-16.4-24.6-24.2-38-7.6-13.1-14.5-26.4-20.8-39.8 6.2-13.4 13.2-26.8 20.7-39.9 7.8-13.5 15.8-26.3 24.1-38.2 14.9-1.3 30-2 45.2-2 15.1 0 30.2.7 45 1.9 8.3 11.9 16.4 24.6 24.2 38 7.6 13.1 14.5 26.4 20.8 39.8-6.3 13.4-13.2 26.8-20.7 39.9zm32.3-13c5.4 13.4 10 26.8 13.8 39.8-13.1 3.2-26.9 5.9-41.2 8 4.9-7.7 9.8-15.6 14.4-23.7 4.6-8 8.9-16.1 13-24.1zM421.2 430c-9.3-9.6-18.6-20.3-27.8-32 9 .4 18.2.7 27.5.7 9.4 0 18.7-.2 27.8-.7-9 11.7-18.3 22.4-27.5 32zm-74.4-58.9c-14.2-2.1-27.9-4.7-41-7.9 3.7-12.9 8.3-26.2 13.5-39.5 4.1 8 8.4 16 13.1 24 4.7 8 9.5 15.8 14.4 23.4zM420.7 163c9.3 9.6 18.6 20.3 27.8 32-9-.4-18.2-.7-27.5-.7-9.4 0-18.7.2-27.8.7 9-11.7 18.3-22.4 27.5-32zm-74 58.9c-4.9 7.7-9.8 15.6-14.4 23.7-4.6 8-8.9 16-13 24-5.4-13.4-10-26.8-13.8-39.8 13.1-3.1 26.9-5.8 41.2-7.9zm-90.5 125.2c-35.4-15.1-58.3-34.9-58.3-50.6 0-15.7 22.9-35.6 58.3-50.6 8.6-3.7 18-7 27.7-10.1 5.7 19.6 13.2 40 22.5 60.9-9.2 20.8-16.6 41.1-22.2 60.6-9.9-3.1-19.3-6.5-28-10.2zM310 490c-13.6-7.8-19.5-37.5-14.9-75.7 1.1-9.4 2.9-19.3 5.1-29.4 19.6 4.8 41 8.5 63.5 10.9 13.5 18.5 27.5 35.3 41.6 50-32.6 30.3-63.2 46.9-84 46.9-4.5-.1-8.3-1-11.3-2.7zm237.2-76.2c4.7 38.2-1.1 67.9-14.6 75.8-3 1.8-6.9 2.6-11.5 2.6-20.7 0-51.4-16.5-84-46.6 14-14.7 28-31.4 41.3-49.9 22.6-2.4 44-6.1 63.6-11 2.3 10.1 4.1 19.8 5.2 29.1zm38.5-66.7c-8.6 3.7-18 7-27.7 10.1-5.7-19.6-13.2-40-22.5-60.9 9.2-20.8 16.6-41.1 22.2-60.6 9.9 3.1 19.3 6.5 28.1 10.2 35.4 15.1 58.3 34.9 58.3 50.6-.1 15.7-23 35.6-58.4 50.6zM320.8 78.4z"/><circle cx="420.9" cy="296.5" r="45.7"/><path d="M520.5 78.1z"/></g></svg>\n\n\nsrc/pages/Landing.tsx
+import React from 'react';
+import FlightSearchForm from '../components/FlightSearchForm';
+import ExploreMap from '../components/ExploreMap';
+import UsefulTools from '../components/UsefulTools';
+import PopularDestinations from '../components/PopularDestinations';
+
+const Landing: React.FC = () => {
+  return (
+    <div className="w-full">
+      {/* Hero Section with Flights Title and Search Form */}
+      <section className="relative bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 min-h-[60vh] overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="/images/airplane-sky-background.jpg"
+            alt="Airplane in sky"
+            className="w-full h-full object-cover opacity-30"
+          />
+          <div className="absolute inset-0 bg-gray-900 bg-opacity-50"></div>
+        </div>
+        {/* Background Illustration */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="w-full h-full relative overflow-hidden">
+            {/* Mountain silhouettes */}
+            <svg className="absolute bottom-0 w-full h-48" viewBox="0 0 1200 200" fill="none">
+              <path d="M0 200L200 100L400 80L600 120L800 60L1000 100L1200 80V200H0Z" fill="currentColor" opacity="0.6"/>
+              <path d="M0 200L150 120L350 100L550 140L750 80L950 120L1200 100V200H0Z" fill="currentColor" opacity="0.4"/>
+              <path d="M0 200L100 140L300 120L500 160L700 100L900 140L1200 120V200H0Z" fill="currentColor" opacity="0.2"/>
+            </svg>
+            
+            {/* Airplane icon */}
+            <div className="absolute top-20 right-40 text-orange-400 opacity-60">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+              </svg>
+            </div>
+            
+            {/* Backpacker figure */}
+            <div className="absolute top-32 right-60 text-orange-500 opacity-50">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7.5L21 9ZM14 9.5V16.5C14 17.3 13.3 18 12.5 18S11 17.3 11 16.5V16.3L7.9 17.5C7.5 17.7 7 17.5 6.8 17.1L6.3 16.1C6.1 15.7 6.3 15.2 6.7 15L9.5 13.7V9.5C9.5 8.7 10.2 8 11 8H13C13.8 8 14.5 8.7 14.5 9.5H14Z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div className="relative container mx-auto px-4 py-16">
+          <h1 className="text-white text-6xl font-light mb-16 text-center">Flights</h1>
+          <FlightSearchForm />
+        </div>
+      </section>
+
+      {/* Explore Destinations Section */}
+      <section className="bg-gray-800 py-12">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-normal text-white mb-8">
+            Find cheap flights from Nairobi to anywhere
+          </h2>
+          <ExploreMap />
+        </div>
+      </section>
+
+      {/* Useful Tools Section */}
+      <section className="bg-gray-900 py-16">
+        <div className="container mx-auto px-4">
+          <UsefulTools />
+        </div>
+      </section>
+
+      {/* Popular Destinations Section */}
+      <section className="bg-gray-800 py-16">
+        <div className="container mx-auto px-4">
+          <PopularDestinations />
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Landing;\n\n\nsrc/react-app-env.d.ts
+/// <reference types="react-scripts" />
+\n\n\nsrc/reportWebVitals.ts
+import { ReportHandler } from 'web-vitals';
+
+const reportWebVitals = (onPerfEntry?: ReportHandler) => {
+  if (onPerfEntry && onPerfEntry instanceof Function) {
+    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      getCLS(onPerfEntry);
+      getFID(onPerfEntry);
+      getFCP(onPerfEntry);
+      getLCP(onPerfEntry);
+      getTTFB(onPerfEntry);
+    });
+  }
+};
+
+export default reportWebVitals;
+\n\n\nsrc/services/skyScrapperApi.ts
+import axios, { AxiosResponse } from 'axios';
+import { 
+  ApiResponse, 
+  Airport, 
+  FlightSearchParams,
+  PriceCalendarData,
+  FlightEverywhereParams
+} from '../types';
+
+// API Configuration
+const API_CONFIG = {
+  BASE_URL: process.env.REACT_APP_API_BASE_URL || 'https://sky-scrapper.p.rapidapi.com',
+  HEADERS: {
+    'X-RapidAPI-Host': 'sky-scrapper.p.rapidapi.com',
+    'X-RapidAPI-Key': process.env.REACT_APP_RAPIDAPI_KEY || '',
+  }
+};
+
+// Default search parameters
+const DEFAULT_SEARCH_PARAMS = {
+  currency: process.env.REACT_APP_DEFAULT_CURRENCY || 'KES',
+  market: process.env.REACT_APP_DEFAULT_MARKET || 'en-US',
+  countryCode: process.env.REACT_APP_DEFAULT_COUNTRY_CODE || 'KE',
+  locale: 'en-US',
+  adults: 1,
+  children: 0,
+  infants: 0,
+  cabinClass: 'economy',
+  sortBy: 'best'
+};
+
+// Create axios instance with default configuration
+const apiClient = axios.create({
+  baseURL: API_CONFIG.BASE_URL,
+  headers: API_CONFIG.HEADERS,
+  timeout: 30000, // 30 seconds timeout
+});
+
+// Add request interceptor for logging (development only)
+if (process.env.NODE_ENV === 'development') {
+  apiClient.interceptors.request.use(
+    (config) => {
+      console.log('API Request:', config.method?.toUpperCase(), config.url, config.params);
+      return config;
+    },
+    (error) => {
+      console.error('API Request Error:', error);
+      return Promise.reject(error);
+    }
+  );
+}
+
+// Add response interceptor for error handling
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Response Error:', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
+class SkyScrapperAPI {
+  /**
+   * Get nearby airports based on latitude and longitude
+   */
+  async getNearByAirports(lat: string, lng: string, locale?: string): Promise<ApiResponse<any>> {
+    const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(
+      '/api/v1/flights/getNearByAirports',
+      {
+        params: {
+          lat,
+          lng,
+          locale: locale || DEFAULT_SEARCH_PARAMS.locale
+        }
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Search for airports by query (city, airport name, etc.)
+   */
+  async searchAirport(query: string, locale?: string): Promise<ApiResponse<Airport[]>> {
+    const response: AxiosResponse<ApiResponse<Airport[]>> = await apiClient.get(
+      '/api/v1/flights/searchAirport',
+      {
+        params: {
+          query,
+          locale: locale || DEFAULT_SEARCH_PARAMS.locale
+        }
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Search for flights between two destinations
+   */
+  async searchFlights(params: FlightSearchParams): Promise<ApiResponse<any>> {
+    const searchParams = {
+      ...DEFAULT_SEARCH_PARAMS,
+      ...params
+    };
+
+    const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(
+      '/api/v2/flights/searchFlights',
+      { params: searchParams }
+    );
+    return response.data;
+  }
+
+  /**
+   * Search for complete flight information
+   */
+  async searchFlightsComplete(params: FlightSearchParams): Promise<ApiResponse<any>> {
+    const searchParams = {
+      ...DEFAULT_SEARCH_PARAMS,
+      ...params
+    };
+
+    const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(
+      '/api/v2/flights/searchFlightsComplete',
+      { params: searchParams }
+    );
+    return response.data;
+  }
+
+  /**
+   * Get price calendar for a route
+   */
+  async getPriceCalendar(
+    originSkyId: string,
+    destinationSkyId: string,
+    fromDate: string,
+    toDate?: string,
+    currency?: string
+  ): Promise<ApiResponse<PriceCalendarData>> {
+    const response: AxiosResponse<ApiResponse<PriceCalendarData>> = await apiClient.get(
+      '/api/v1/flights/getPriceCalendar',
+      {
+        params: {
+          originSkyId,
+          destinationSkyId,
+          fromDate,
+          toDate,
+          currency: currency || DEFAULT_SEARCH_PARAMS.currency
+        }
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Search flights to everywhere from a single origin
+   */
+  async searchFlightEverywhere(params: FlightEverywhereParams): Promise<ApiResponse<any>> {
+    const searchParams = {
+      ...DEFAULT_SEARCH_PARAMS,
+      ...params
+    };
+
+    const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(
+      '/api/v2/flights/searchFlightEverywhere',
+      { params: searchParams }
+    );
+    return response.data;
+  }
+
+  /**
+   * Get flight details for a specific itinerary
+   */
+  async getFlightDetails(
+    itineraryId: string,
+    legs: any[],
+    sessionId: string,
+    adults?: number,
+    children?: number,
+    infants?: number,
+    currency?: string,
+    locale?: string,
+    market?: string,
+    cabinClass?: string,
+    countryCode?: string
+  ): Promise<ApiResponse<any>> {
+    const response: AxiosResponse<ApiResponse<any>> = await apiClient.get(
+      '/api/v1/flights/getFlightDetails',
+      {
+        params: {
+          itineraryId,
+          legs: JSON.stringify(legs),
+          sessionId,
+          adults: adults || DEFAULT_SEARCH_PARAMS.adults,
+          children: children || DEFAULT_SEARCH_PARAMS.children,
+          infants: infants || DEFAULT_SEARCH_PARAMS.infants,
+          currency: currency || DEFAULT_SEARCH_PARAMS.currency,
+          locale: locale || DEFAULT_SEARCH_PARAMS.locale,
+          market: market || DEFAULT_SEARCH_PARAMS.market,
+          cabinClass: cabinClass || DEFAULT_SEARCH_PARAMS.cabinClass,
+          countryCode: countryCode || DEFAULT_SEARCH_PARAMS.countryCode
+        }
+      }
+    );
+    return response.data;
+  }
+}
+
+// Create and export a singleton instance
+export const skyScrapperAPI = new SkyScrapperAPI();
+export default skyScrapperAPI;\n\n\nsrc/setupTests.ts
+// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom';
+\n\n\nsrc/types/index.tsx
+// API Response Types
+export interface ApiResponse<T> {
+  status: boolean;
+  timestamp: number;
+  data: T;
+}
+
+// Airport Types
+export interface AirportPresentation {
+  title: string;
+  suggestionTitle: string;
+  subtitle: string;
+}
+
+export interface FlightParams {
+  skyId: string;
+  entityId: string;
+  flightPlaceType: string;
+  localizedName: string;
+}
+
+export interface HotelParams {
+  entityId: string;
+  entityType: string;
+  localizedName: string;
+}
+
+export interface AirportNavigation {
+  entityId: string;
+  entityType: string;
+  localizedName: string;
+  relevantFlightParams: FlightParams;
+  relevantHotelParams: HotelParams;
+}
+
+export interface Airport {
+  skyId: string;
+  entityId: string;
+  presentation: AirportPresentation;
+  navigation: AirportNavigation;
+}
+
+// Search Form Types
+export interface SearchFormData {
+  origin: Airport | null;
+  destination: Airport | null;
+  departureDate: Date | null;
+  returnDate: Date | null;
+  tripType: 'round-trip' | 'one-way' | 'multi-city';
+  passengers: {
+    adults: number;
+    children: number;
+    infants: number;
+  };
+  cabinClass: 'economy' | 'premium_economy' | 'business' | 'first';
+}
+
+// Flight Search Types
+export interface FlightSearchParams {
+  originSkyId: string;
+  destinationSkyId: string;
+  originEntityId: string;
+  destinationEntityId: string;
+  date: string;
+  returnDate?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  cabinClass?: string;
+  currency?: string;
+  market?: string;
+  countryCode?: string;
+  sortBy?: string;
+}
+
+// Destination Card Types
+export interface DestinationInfo {
+  name: string;
+  price: string;
+  currency: string;
+  dateRange: string;
+  duration: string;
+  stops: string;
+  image: string;
+}
+
+// Price Calendar Types
+export interface PriceCalendarDay {
+  day: string;
+  group: 'low' | 'medium' | 'high';
+  price: number;
+}
+
+export interface PriceCalendarData {
+  flights: {
+    noPriceLabel: string;
+    groups: Array<{
+      id: string;
+      label: string;
+    }>;
+    days: PriceCalendarDay[];
+    currency: string;
+  };
+}
+
+// Flight Search Everywhere Types
+export interface FlightEverywhereParams {
+  originEntityId: string;
+  destinationEntityId?: string;
+  travelDate?: string;
+  returnDate?: string;
+  adults?: number;
+  childAges?: string;
+  cabinClass?: string;
+  journeyType?: 'one_way' | 'round_trip';
+  currency?: string;
+}\n\n\nsrc/utils/constants.ts
+// API Configuration
+export const API_CONFIG = {
+  BASE_URL: 'https://sky-scrapper.p.rapidapi.com',
+  HEADERS: {
+    'X-RapidAPI-Host': 'sky-scrapper.p.rapidapi.com',
+    'X-RapidAPI-Key': process.env.REACT_APP_RAPIDAPI_KEY || '', // Add your RapidAPI key to .env file
+  }
+};
+
+// Default search parameters
+export const DEFAULT_SEARCH_PARAMS = {
+  currency: 'USD',
+  market: 'en-US',
+  countryCode: 'US',
+  locale: 'en-US',
+  adults: 1,
+  children: 0,
+  infants: 0,
+  cabinClass: 'economy',
+  sortBy: 'best'
+};
+
+// Trip type options
+export const TRIP_TYPES = [
+  { value: 'round-trip', label: 'Round trip' },
+  { value: 'one-way', label: 'One way' },
+  { value: 'multi-city', label: 'Multi-city' }
+];
+
+// Cabin class options
+export const CABIN_CLASSES = [
+  { value: 'economy', label: 'Economy' },
+  { value: 'premium_economy', label: 'Premium Economy' },
+  { value: 'business', label: 'Business' },
+  { value: 'first', label: 'First' }
+];
+
+// Popular destinations from Nairobi (static data for demo)
+export const POPULAR_DESTINATIONS = [
+  {
+    name: 'London',
+    image: '/images/london.jpg',
+    price: 'KES 95,923',
+    currency: 'KES'
+  },
+  {
+    name: 'Tokyo',
+    image: '/images/tokyo.jpg',
+    price: 'KES 120,000',
+    currency: 'KES'
+  },
+  {
+    name: 'Milan',
+    image: '/images/milan.jpg',
+    price: 'KES 85,000',
+    currency: 'KES'
+  },
+  {
+    name: 'New York',
+    image: '/images/new-york.jpg',
+    price: 'KES 123,473',
+    currency: 'KES'
+  },
+  {
+    name: 'Paris',
+    image: '/images/paris.jpg',
+    price: 'KES 98,000',
+    currency: 'KES'
+  },
+  {
+    name: 'Washington',
+    image: '/images/washington.jpg',
+    price: 'KES 115,000',
+    currency: 'KES'
+  },
+  {
+    name: 'Istanbul',
+    image: '/images/istanbul.jpg',
+    price: 'KES 75,000',
+    currency: 'KES'
+  }
+];
+
+// Nairobi coordinates for nearby airports
+export const NAIROBI_COORDINATES = {
+  lat: '-1.2921',
+  lng: '36.8219'
+};
